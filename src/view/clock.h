@@ -45,6 +45,7 @@ class Clock : public QObject, public IconlessDockItem {
   void loadConfig() override;
   QString getLabel() const override;
   bool beforeTask(const QString& program) override { return false; }
+  void drawAnalogClock(QPainter* painter) const;
 
  public slots:
   void updateTime();
@@ -76,6 +77,7 @@ class Clock : public QObject, public IconlessDockItem {
   QMenu menu_;
 
   QAction* use24HourClockAction_;
+  QAction* useAnalogClockAction_;
   QAction* largeFontAction_;
   QAction* mediumFontAction_;
   QAction* smallFontAction_;

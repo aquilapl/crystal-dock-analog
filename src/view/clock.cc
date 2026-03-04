@@ -54,6 +54,10 @@ Clock::Clock(DockPanel* parent, MultiDockModel* model,
 }
 
 void Clock::draw(QPainter *painter) const {
+  if (model_->useAnalogClock()) { 
+    drawAnalogClock(painter);      
+    return;                         
+  }                                 
   const QString timeFormat = model_->use24HourClock() ? "hh:mm" : "hh:mm AP";
   const QString time = QTime::currentTime().toString(timeFormat);
   // The reference time used to calculate the font size.
@@ -129,6 +133,13 @@ void Clock::createMenu() {
         saveConfig();
       });
   use24HourClockAction_->setCheckable(true);
+  
+  useAnalogClockAction_ = menu_.addAction(  
+      QString("Analog Clock"), this,        
+      [this] {                               
+        saveConfig();                        
+      });                                    
+  useAnalogClockAction_->setCheckable(true); 
 
   QMenu* fontFamily = menu_.addMenu(QString("Font Family"));
   for (const auto& family : getBaseFontFamilies()) {
@@ -161,13 +172,75 @@ void Clock::createMenu() {
 
 void Clock::loadConfig() {
   use24HourClockAction_->setChecked(model_->use24HourClock());
+  useAnalogClockAction_->setChecked(model_->useAnalogClock());
+  // Ustawienie szerokości (1.0 = kwadrat dla analogowego)
+  whRatio_ = model_->useAnalogClock() ? 1.0 : kWhRatio;
   setFontScaleFactor(model_->clockFontScaleFactor());
 }
 
 void Clock::saveConfig() {
   model_->setUse24HourClock(use24HourClockAction_->isChecked());
+  model_->setUseAnalogClock(useAnalogClockAction_->isChecked());
+  // Przełączanie szerokości na żywo
+  whRatio_ = useAnalogClockAction_->isChecked() ? 1.0 : kWhRatio;
   model_->setClockFontScaleFactor(fontScaleFactor());
-  model_->saveAppearanceConfig(true /* repaintOnly */);
+  model_->saveAppearanceConfig(false); 
+}
+
+void Clock::drawAnalogClock(QPainter* painter) const {
+  const int h = getHeight();
+  const int w = getWidth();
+  const int radius = qMin(w, h) / 2 - 2;
+  const int centerX = left_ + w / 2;
+  const int centerY = top_ + h / 2;
+  
+  painter->setRenderHint(QPainter::Antialiasing);
+  QColor cyan(0, 255, 255);
+  
+  // 1. Tarcza zegara (grubsza linia)
+  painter->setPen(QPen(cyan, 3));
+  painter->setBrush(Qt::NoBrush);
+  painter->drawEllipse(QPoint(centerX, centerY), radius, radius);
+  
+  // 2. Kreseczki (godzinowe i minutowe)
+  painter->save();
+  painter->translate(centerX, centerY);
+  for (int i = 0; i < 60; ++i) {
+    if (i % 5 == 0) {
+      // Godziny
+      painter->setPen(QPen(cyan, 2.5));
+      painter->drawLine(0, -radius + 2, 0, -radius + 8);
+    } else {
+      // Minuty
+      painter->setPen(QPen(cyan, 1));
+      painter->drawLine(0, -radius + 2, 0, -radius + 5);
+    }
+    painter->rotate(6.0);
+  }
+  painter->restore();
+  
+  QTime time = QTime::currentTime();
+  
+  // 3. Wskazówka godzinowa
+  painter->save();
+  painter->translate(centerX, centerY);
+  painter->rotate(30.0 * ((time.hour() + time.minute() / 60.0)));
+  painter->setPen(QPen(cyan, 4, Qt::SolidLine, Qt::RoundCap));
+  painter->drawLine(0, 0, 0, -radius * 0.5);
+  painter->restore();
+  
+  // 4. Wskazówka minutowa
+  painter->save();
+  painter->translate(centerX, centerY);
+  painter->rotate(6.0 * (time.minute() + time.second() / 60.0));
+  painter->setPen(QPen(cyan, 2.5, Qt::SolidLine, Qt::RoundCap));
+  painter->drawLine(0, 0, 0, -radius * 0.85);
+  painter->restore();
+  
+  // 5. Środek
+  painter->setBrush(cyan);
+  painter->setPen(Qt::NoPen);
+  painter->drawEllipse(QPoint(centerX, centerY), 3, 3);
 }
 
 }  // namespace crystaldock

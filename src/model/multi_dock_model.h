@@ -469,13 +469,22 @@ class MultiDockModel : public QObject {
     setAppearanceProperty(kTaskManagerCategory, kGroupTasksByApplication, value);
   }
 
+  // --- POPRAWIONA SEKCJA ZEGARA ---
   bool use24HourClock() const {
     return appearanceProperty(kClockCategory, kUse24HourClock,
                               kDefaultUse24HourClock);
   }
 
+  bool useAnalogClock() const {
+    return appearanceProperty(kClockCategory, kUseAnalogClock, false);
+  }
+
   void setUse24HourClock(bool value) {
     setAppearanceProperty(kClockCategory, kUse24HourClock, value);
+  }
+
+  void setUseAnalogClock(bool value) {
+    setAppearanceProperty(kClockCategory, kUseAnalogClock, value);
   }
 
   float clockFontScaleFactor() const {
@@ -487,6 +496,7 @@ class MultiDockModel : public QObject {
   void setClockFontScaleFactor(float value) {
     setAppearanceProperty(kClockCategory, kFontScaleFactor, QString::number(value));
   }
+  // --- KONIEC SEKCJI ZEGARA ---
 
   QString clockFontFamily() const {
     return appearanceProperty(kClockCategory, kClockFontFamily, QString());
@@ -808,6 +818,7 @@ class MultiDockModel : public QObject {
 
   static constexpr char kClockCategory[] = "Clock";
   static constexpr char kUse24HourClock[] = "use24HourClock";
+  static constexpr char kUseAnalogClock[] = "useAnalogClock";
   static constexpr char kFontScaleFactor[] = "fontScaleFactor";
   static constexpr char kClockFontFamily[] = "clockFontFamily";
 

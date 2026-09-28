@@ -197,7 +197,7 @@ void Clock::drawAnalogClock(QPainter* painter) const {
   
   painter->setRenderHint(QPainter::Antialiasing);
 
-  QColor clockColor = parent_->palette().color(QPalette::WindowText);
+  QColor clockColor = parent_->palette().color(QPalette::Highlight);
   if (!clockColor.isValid() || clockColor.alpha() == 0) {
     clockColor = Qt::white;
   }
